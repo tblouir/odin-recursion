@@ -1,14 +1,8 @@
 def fibs(number)
   array = [0, 1]
-  counter = 0
   return array if number.between?(0, 1)
 
-  until array.length == number
-    array << array[counter] + array[counter+1]
-    counter += 1
-  end
-
-  array
+  array.each_index { |index| array << array[index] + array[index+1] if array.length < number } 
 end
 
 def fibs_rec(number = 0)
@@ -20,5 +14,6 @@ def fibs_rec(number = 0)
   array << array[-2] + array[-1]
 end
 
-p fibs_rec()
-p fibs_rec(8)
+p "Non-recursive: #{fibs(8)}"
+p "Recursive: #{fibs_rec(0)}"
+p "Recursive: #{fibs_rec(8)}"
