@@ -10,10 +10,12 @@ class Node
 end
 
 class Tree
-  attr_reader :array, :root
+  attr_reader :array, :root, :queue, :visited
   def initialize(array)
     @array = array.uniq.sort
     @root = build_tree(@array)
+    @queue = []
+    @visited = [@root]
     puts "Sorted Array: #{@array}"
     pretty_print
   end
@@ -174,16 +176,35 @@ class Tree
     end
   end
 
-  def level_order
-    # unshift and pop or push and shift for First in First out 
-    queue = []
-    if block_given?
+  def level_order(node=@root)
+    if node.nil? || (node.left.nil? && node.right.nil?)
+
+      until @queue.empty?
+        node = @queue[0]
+        yield node if block_given?
+
+        @visited << @queue.shift
+        level_order(node)
+      end
 
     else
+      @queue << node.left unless node.left.nil?
+      @queue << node.right unless node.right.nil?
+      
+      node = @queue[0]
+      yield node if block_given?
 
+      @visited << @queue.shift
+      level_order(node)
+    end
+
+    if @queue.empty? && @visited.length > 0
+      array = []
+      @visited.each { |node| array << node.value }
+      return array
     end
   end
-
 end
 
 tree = Tree.new(array)
+p tree.level_order
