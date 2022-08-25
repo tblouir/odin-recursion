@@ -176,35 +176,47 @@ class Tree
     end
   end
 
-  def level_order(node=@root)
+  def level_order(node = @root, &block)
+    # Push all remaining queue to visited when all nodes are accounted for
     if node.nil? || (node.left.nil? && node.right.nil?)
-
       until @queue.empty?
-        node = @queue[0]
-        yield node if block_given?
-
+        block.call(@queue[0]) if block_given?
         @visited << @queue.shift
-        level_order(node)
       end
-
+      
     else
       @queue << node.left unless node.left.nil?
       @queue << node.right unless node.right.nil?
-      
+
       node = @queue[0]
-      yield node if block_given?
+      block.call(node) if block_given?
 
       @visited << @queue.shift
-      level_order(node)
+      level_order(node, &block)
     end
 
     if @queue.empty? && @visited.length > 0
-      array = []
-      @visited.each { |node| array << node.value }
-      return array
+      unless block_given?        
+        array = []
+        @visited.each { |node| array << node.value }
+        return array
+      end
     end
+  end
+
+  def inorder
+
+  end
+
+  def preorder
+
+  end
+
+  def postorder
+    
   end
 end
 
 tree = Tree.new(array)
 p tree.level_order
+tree.level_order { |node| p "Values: #{node.value}" }
