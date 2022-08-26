@@ -16,6 +16,7 @@ class Tree
     @root = build_tree(@array)
     @queue = []
     @visited = []
+    @depth = 0
     puts "Sorted Array: #{@array}"
     pretty_print
   end
@@ -46,7 +47,7 @@ class Tree
     current_node = @root
 
     while true
-      return {parent: nil, target: @root} if value == @root.value
+      return {parent: nil, target: @root, depth: @depth} if value == @root.value
 
       if value < current_node.value
         if current_node.left.nil?
@@ -55,10 +56,11 @@ class Tree
         end
 
         if current_node.left.value == value
-          puts "Node Found"
-          return {parent: current_node, target: current_node.left}
+          @depth += 1
+          return {parent: current_node, target: current_node.left, depth: @depth}
         end
 
+        @depth += 1
         current_node = current_node.left
 
       elsif value > current_node.value
@@ -68,10 +70,11 @@ class Tree
         end
 
         if current_node.right.value == value
-          puts "Node Found"
-          return {parent: current_node, target: current_node.right}
+          @depth += 1
+          return {parent: current_node, target: current_node.right, depth: @depth}
         end
 
+        @depth += 1
         current_node = current_node.right
       end
     end
@@ -199,7 +202,7 @@ class Tree
 
     if @queue.empty? && @visited.length > 0
       unless block_given?        
-        return show_visited
+        return display_visited
       end
     end
   end
@@ -209,7 +212,7 @@ class Tree
     @visited << node
     inorder(node.right, &block) unless node.right.nil?
     block.call(node) if block_given?
-    return show_visited unless block_given?
+    return display_visited unless block_given?
   end
 
   def preorder(node = @root, &block)
@@ -219,7 +222,7 @@ class Tree
 
     block.call(node) if block_given?
 
-    return show_visited unless block_given?
+    return display_visited unless block_given?
   end
   
   def postorder(node = @root, &block)
@@ -227,17 +230,55 @@ class Tree
     postorder(node.right, &block) unless node.right.nil?
     @visited << node
     block.call(node) if block_given?
-    return show_visited unless block_given?
+    return display_visited unless block_given?
   end
 
-  def show_visited
+  def display_visited
     array = []
     @visited.each { |node| array << node.value }
     return array
   end
+
+  def clear_visited
+    @visited.clear
+  end
+
+  def show_orders
+    p "Preorder: #{preorder}"
+    clear_visited
+    p "Inorder: #{inorder}"
+    clear_visited
+    p "Postorder: #{postorder}"
+    clear_visited
+  end
+
+  def height(node)
+    if node.nil?
+      return 0
+    else
+      return (height(node.left) > height(node.right) ? height(node.left) : height(node.right)) + 1
+    end
+  end
+
+  def display_height(node_value)
+    result = find(node_value)
+    p "Height: #{height(result[:target]) - 1}" unless result.nil?
+  end
+
+  def display_depth(node_value)
+    result = find(node_value)
+    p "Depth: #{result[:depth]}" unless result.nil?
+  end
+
+  # def balanced?
+    
+  # end
+
+  # def rebalance
+    
+  # end
 end
 
 tree = Tree.new(array)
-# p tree.preorder
-# p tree.inorder
-p tree.postorder
+tree.display_height(8)
+tree.display_depth(6345)
