@@ -15,7 +15,7 @@ class Tree
     @array = array.uniq.sort
     @root = build_tree(@array)
     @queue = []
-    @visited = [@root]
+    @visited = []
     puts "Sorted Array: #{@array}"
     pretty_print
   end
@@ -177,13 +177,15 @@ class Tree
   end
 
   def level_order(node = @root, &block)
+    @visited << @root unless @visited.include?(@root)
+
     # Push all remaining queue to visited when all nodes are accounted for
     if node.nil? || (node.left.nil? && node.right.nil?)
       until @queue.empty?
         block.call(@queue[0]) if block_given?
         @visited << @queue.shift
       end
-      
+
     else
       @queue << node.left unless node.left.nil?
       @queue << node.right unless node.right.nil?
@@ -197,26 +199,45 @@ class Tree
 
     if @queue.empty? && @visited.length > 0
       unless block_given?        
-        array = []
-        @visited.each { |node| array << node.value }
-        return array
+        return show_visited
       end
     end
   end
 
-  def inorder
-
+  def inorder(node = @root, &block)
+    inorder(node.left, &block) unless node.left.nil?
+    @visited << node
+    inorder(node.right, &block) unless node.right.nil?
+    block.call(node) if block_given?
+    return show_visited unless block_given?
   end
 
-  def preorder
+  def preorder(node = @root, &block)
+    @visited << node
+    preorder(node.left, &block) unless node.left.nil?
+    preorder(node.right, &block) unless node.right.nil?
 
+    block.call(node) if block_given?
+
+    return show_visited unless block_given?
+  end
+  
+  def postorder(node = @root, &block)
+    postorder(node.left, &block) unless node.left.nil?
+    postorder(node.right, &block) unless node.right.nil?
+    @visited << node
+    block.call(node) if block_given?
+    return show_visited unless block_given?
   end
 
-  def postorder
-    
+  def show_visited
+    array = []
+    @visited.each { |node| array << node.value }
+    return array
   end
 end
 
 tree = Tree.new(array)
-p tree.level_order
-tree.level_order { |node| p "Values: #{node.value}" }
+# p tree.preorder
+# p tree.inorder
+p tree.postorder
