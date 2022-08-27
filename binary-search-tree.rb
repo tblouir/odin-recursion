@@ -1,4 +1,4 @@
-array = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
+array = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 10, 12, 13, 14, 15, 16]
 
 class Node
   attr_accessor :left, :right, :value
@@ -57,7 +57,9 @@ class Tree
 
         if current_node.left.value == value
           @depth += 1
-          return {parent: current_node, target: current_node.left, depth: @depth}
+          depth = @depth
+          @depth = 0
+          return {parent: current_node, target: current_node.left, depth: depth}
         end
 
         @depth += 1
@@ -71,7 +73,9 @@ class Tree
 
         if current_node.right.value == value
           @depth += 1
-          return {parent: current_node, target: current_node.right, depth: @depth}
+          depth = @depth
+          @depth = 0
+          return {parent: current_node, target: current_node.right, depth: depth}
         end
 
         @depth += 1
@@ -211,6 +215,7 @@ class Tree
     inorder(node.left, &block) unless node.left.nil?
     @visited << node
     inorder(node.right, &block) unless node.right.nil?
+
     block.call(node) if block_given?
     return display_visited unless block_given?
   end
@@ -221,14 +226,15 @@ class Tree
     preorder(node.right, &block) unless node.right.nil?
 
     block.call(node) if block_given?
-
     return display_visited unless block_given?
   end
   
   def postorder(node = @root, &block)
     postorder(node.left, &block) unless node.left.nil?
     postorder(node.right, &block) unless node.right.nil?
+
     @visited << node
+
     block.call(node) if block_given?
     return display_visited unless block_given?
   end
@@ -244,6 +250,8 @@ class Tree
   end
 
   def show_orders
+    p "Level Order: #{level_order}"
+    clear_visited
     p "Preorder: #{preorder}"
     clear_visited
     p "Inorder: #{inorder}"
@@ -270,15 +278,57 @@ class Tree
     p "Depth: #{result[:depth]}" unless result.nil?
   end
 
-  # def balanced?
-    
-  # end
+  def get_leaf_nodes(node = @root)
+    if node.left.nil? && node.right.nil?
+      @visited << node
+      return nil
+    end
+    get_leaf_nodes(node.left) unless node.left.nil?
+    get_leaf_nodes(node.right) unless node.right.nil?
+    return @visited
+  end
 
-  # def rebalance
-    
-  # end
+  def balanced?
+    highest_depth = 0
+
+    result = get_leaf_nodes
+
+    depth_array = []
+    result.each { |node| depth_array << find(node.value)[:depth]}
+
+    depth_array.reduce { |sum, depth| depth > highest_depth ? highest_depth = depth : highest_depth }
+
+    if depth_array.any? { |depth| (highest_depth - depth).abs >= 2 }
+      puts "###"
+      puts "Tree is not balanced"
+      puts "###"
+      clear_visited
+      return false
+    else
+      puts "###"
+      puts "Tree is balanced"
+      puts "###"
+      clear_visited
+      return true
+    end
+  end
+
+  def rebalance
+    @array = inorder
+    puts "Sorted Array: #{@array}"
+
+    @root = build_tree(@array)
+
+    clear_visited
+    pretty_print
+  end
 end
 
-tree = Tree.new(array)
-tree.display_height(8)
-tree.display_depth(6345)
+tree = Tree.new(Array.new(15) { rand(1..100) })
+tree.balanced?
+tree.show_orders
+7.times { tree.insert(rand(100..500)) }
+tree.balanced?
+tree.rebalance
+tree.balanced?
+tree.show_orders
